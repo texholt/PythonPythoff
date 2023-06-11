@@ -16,7 +16,7 @@ class ScraperThread(threading.Thread):
 
         # Here you'll need to adjust based on each website's structure
         if 'shipwreckbeads' in self.url:
-            products = soup.find_all('span', {'class': 'name'})
+            products = soup.find_all('a', {'class': 'facets-item-cell-list-name'})
             price = soup.find_all('div', {'class': 'product-views-price'})
         elif 'powwowsupply' in self.url:
             products = soup.find_all('h4', {'class': 'card-title'})
@@ -33,22 +33,24 @@ class ScraperThread(threading.Thread):
         # Extract the desired information from each element
         for product, price_elem in zip(products, price):
             product_title = None
-            for tag in ['span', 'h4', 'h3']:
+            for tag in ['span', 'div', 'h4', 'h3', 'h2', 'a']:
                 product_title = product.find(tag)
                 if product_title:
                     break
             price = None
-            for tag in ['span', 'div']:
+            for tag in ['span', 'div', 'h4', 'h3', 'h2']:
                 price = price_elem.find(tag, recursive=False)
                 if price:
                     break
             if product_title is not None and price is not None:
-                data.append((product_title.text.strip(), price.text.strip()))
+                product_name = product_title.text.strip()
+                price_text = price.text.strip()
+                data.append((product_name, price_text))
 
         self.results.append((self.url, title, data))
 
 urls = [
-    'https://www.shipwreckbeads.com/Beads/seed-beads?show=96',
+    'https://www.shipwreckbeads.com/Beads/seed-beads?show=96&display=list',
     'https://powwowsupply.com/seed-beads/11-0-seed-beads/?limit=100',
     'https://prairieedge.com/beads/',
     'https://www.beadededgesupply.com/collections/11-0-czech-seed-opaque'
@@ -70,3 +72,4 @@ for url, title, data in results:
         print(f'Product: {product_title}')
         print(f'Price: {price}')
         print()
+
